@@ -1,0 +1,22 @@
+{
+    "query":{"bool": {"must": [{"range": {"date": {"gte": "2020-12-15", "lte": "2021-05-31"}}}, {"term": {"symbol": "%s"}}]}}, 
+    "aggs": {
+        "Backtest_RSI": {
+	    "date_histogram": {"field": "date", "fixed_interval": "1d", "format": "yyyy-MM-dd"}, 
+	    "aggs": {
+	        "STP": {"bucket_selector": {"buckets_path": {"count": "_count"}, "script": "params.count > 0"}}, 
+		"Daily": {"avg": {"field": "close"}}, "DateStr": {"min": {"field": "date"}}, 
+		"Price_Diff": {"derivative": {"buckets_path": "Daily"}}, 
+		"Gain": {"bucket_script": {"buckets_path": {"Price_Diff": "Price_Diff"}, "script": "(params.Price_Diff > 0) ? params.Price_Diff : 0"}}, 
+		"Loss": {"bucket_script": {"buckets_path": {"Price_Diff": "Price_Diff"}, "script": "(params.Price_Diff < 0) ? -params.Price_Diff : 0"}}, 
+		"GainMA": {"moving_fn": {"script": "MovingFunctions.unweightedAvg(values)", "window": 14, "buckets_path": "Gain", "shift": 1}}, 
+		"LossMA": {"moving_fn": {"script": "MovingFunctions.unweightedAvg(values)", "window": 14, "buckets_path": "Loss", "shift": 1}}, 
+		"RSI": {"bucket_script": {"buckets_path": {"GainMA": "GainMA", "LossMA": "LossMA"}, "script": "100 - 100/(1+params.GainMA/params.LossMA)"}}, 
+		"RSI_Type": {"bucket_script": {"buckets_path": {"RSI": "RSI"}, "script": "params.RSI => 70 ? 2 : params.RSI <= 30 ? 1 : 0"}}, 
+                "Buy_Sell_Signal": {"bucket_selector": {"buckets_path": {"DateStr": "DateStr", "RSI_Type": "RSI_Type"}, "script": "params.DateStr >= 1610697600000L && (params.RSI_Type == 1 || params.RSI_Type == 2)"}}
+	    }
+	}
+    }, 
+    "from": 0, 
+    "size": 0
+}
