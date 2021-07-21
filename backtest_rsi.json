@@ -12,7 +12,7 @@
 		"GainMA": {"moving_fn": {"script": "MovingFunctions.unweightedAvg(values)", "window": 14, "buckets_path": "Gain", "shift": 1}}, 
 		"LossMA": {"moving_fn": {"script": "MovingFunctions.unweightedAvg(values)", "window": 14, "buckets_path": "Loss", "shift": 1}}, 
 		"RSI": {"bucket_script": {"buckets_path": {"GainMA": "GainMA", "LossMA": "LossMA"}, "script": "100 - 100/(1+params.GainMA/params.LossMA)"}}, 
-		"RSI_Type": {"bucket_script": {"buckets_path": {"RSI": "RSI"}, "script": "params.RSI => 70 ? 2 : params.RSI <= 30 ? 1 : 0"}}, 
+		"RSI_Type": {"bucket_script": {"buckets_path": {"RSI": "RSI"}, "script": "params.RSI >= 70 ? 2 : params.RSI <= 30 ? 1 : 0"}}, 
                 "Buy_Sell_Signal": {"bucket_selector": {"buckets_path": {"DateStr": "DateStr", "RSI_Type": "RSI_Type"}, "script": "params.DateStr >= 1610697600000L && (params.RSI_Type == 1 || params.RSI_Type == 2)"}}
 	    }
 	}
